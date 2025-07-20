@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityBot - Smart City Management Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .chat-container {
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .header {
+            background: #075e54;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            position: relative;
+            margin-top: 0px;
+        }
+        
+        .header h1 {
+            font-size: 1.2em;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .header .status {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+        
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #e5ddd5;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><path d="M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z" fill="%23ffffff" opacity="0.05"/></svg>');
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .bot-message {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .bot-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .message-content {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px 18px 18px 5px;
+            max-width: 75%;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .user-message .message-content {
+            background: #dcf8c6;
+            border-radius: 18px 18px 5px 18px;
+            margin-left: auto;
+            margin-right: 0;
+        }
+        
+        .user-message {
+            text-align: right;
+        }
+        
+        .problem-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .problem-btn {
+            background: #f8f9ff;
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 11px;
+            line-height: 1.3;
+            color: #333;
+        }
+        
+        .problem-btn:hover {
+            background: #e8f4f8;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .problem-icon {
+            font-size: 18px;
+            margin-bottom: 4px;
+            display: block;
+        }
+        
+        .language-selector {
+            display: none;
+            margin-top: 15px;
+        }
+        
+        .language-btn {
+            background: #128c7e;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            margin: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s ease;
+        }
+        
+        .language-btn:hover {
+            background: #075e54;
+        }
+        
+        .solution-display {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            background: #fff3cd;
+            border-radius: 12px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.5s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+        
+        .back-btn {
+            background: #128c7e;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-top: 10px;
+        }
+        
+        .footer {
+            padding: 15px 20px;
+            background: #f0f0f0;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .online-status {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            background: #25d366;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <div class="online-status"></div>
+            <h1> <img src="logo.jpg" alt="UrbanCityPortal Logo" style="height: 30px; width: 30px; object-fit: cover; border-radius: 50%; margin-right: 10px;">CityBot Assistant</h1>
+            <div class="status">Smart City Management • Online</div>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <div class="message bot-message">
+                <div class="bot-avatar"> <img src="logo.jpg" alt="UrbanCityPortal Logo" style="height: 30px; width: 30px; object-fit: cover; border-radius: 50%; margin-right: 10px;"></div>
+                <div class="message-content">
+                    <div>नमस्ते! मी CityBot आहे 👋</div>
+                    <div style="margin-top: 5px;">I'm here to help you with city management issues. Please select a category below:</div>
+
+                    <div class="problem-grid">
+                        <div class="problem-btn" onclick="selectProblem('infrastructure')">
+                            <span class="problem-icon">🏗️</span> Infrastructure
+                        </div>
+                        <div class="problem-btn" onclick="selectProblem('safety')">
+                            <span class="problem-icon">🚨</span> Public Safety
+                        </div>
+                        <div class="problem-btn" onclick="selectProblem('environment')">
+                            <span class="problem-icon">🌱</span> Environment
+                        </div>
+                        <div class="problem-btn" onclick="selectProblem('transportation')">
+                            <span class="problem-icon">🚗</span> Transportation
+                        </div>
+                        <div class="problem-btn" onclick="selectProblem('services')">
+                            <span class="problem-icon">🚰</span> Public Services
+                        </div>
+                        <div class="problem-btn" onclick="selectProblem('health')">
+                            <span class="problem-icon">🏥</span> Healthcare
+                        </div>
+                        <div class="problem-btn" onclick="selectProblem('education')">
+                            <span class="problem-icon">🎓</span> Education
+                        </div>
+                        <div class="problem-btn" onclick="selectProblem('housing')">
+                            <span class="problem-icon">🏠</span> Housing
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="bot-avatar"> <img src="logo.jpg" alt="UrbanCityPortal Logo" style="height: 30px; width: 30px; object-fit: cover; border-radius: 50%; margin-right: 10px;"></div>
+                <div class="message-content">
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div>🔒 Secure • 24/7 Available • Multi-language Support</div>
+        </div>
+    </div>
+
+    <script>
+        let currentProblem = '';
+        let selectedLanguage = '';
+
+        const solutions = {
+            infrastructure: {
+                en: "🏗️ Infrastructure Solutions:\n\n• Report damaged roads through our mobile app\n• Bridge maintenance schedules are available online\n• Utility outages: Call 1800-CITY-FIX\n• Water supply issues: Contact local ward office\n• Report street light problems via website\n\n📞 Emergency Infrastructure Hotline: 102",
+                hi: "🏗️ अवसंरचना समाधान:\n\n• मोबाइल ऐप के द्वारा खराब सड़कों की रिपोर्ट करें\n• पुल रखरखाव का कार्यक्रम ऑनलाइन उपलब्ध है\n• उपयोगिता बंद: 1800-CITY-FIX पर कॉल करें\n• पानी की आपूर्ति की समस्या: स्थानीय वार्ड कार्यालय से संपर्क करें\n• वेबसाइट के द्वारा स्ट्रीट लाइट की समस्या की रिपोर्ट करें\n\n📞 आपातकालीन अवसंरचना हॉटलाइन: 102",
+                mr: "🏗️ पायाभूत सुविधा समाधाने:\n\n• मोबाईल अॅपद्वारे खराब रस्ते कळवा\n• पूल देखभालीचे वेळापत्रक ऑनलाइन उपलब्ध\n• उपयोगिता बंद: 1800-CITY-FIX वर कॉल करा\n• पाणी पुरवठा समस्या: स्थानिक प्रभाग कार्यालयाशी संपर्क करा\n• वेबसाइटद्वारे रस्त्यावरील दिव्याची समस्या कळवा\n\n📞 आपत्कालीन पायाभूत हॉटलाइन: 102"
+            },
+            safety: {
+                en: "🚨 Public Safety Solutions:\n\n• Report broken street lights immediately\n• Damaged road signs: Use our QR code reporting\n• Hazardous areas: Contact safety department\n• Emergency services: Dial 100 or 108\n• Install CCTV cameras in vulnerable areas\n• Regular safety audits and patrols\n\n📞 Safety Emergency: 100",
+                hi: "🚨 सार्वजनिक सुरक्षा समाधान:\n\n• टूटी हुई स्ट्रीट लाइट तुरंत रिपोर्ट करें\n• क्षतिग्रस्त सड़क के संकेत: हमारे QR कोड रिपोर्टिंग का उपयोग करें\n• खतरनाक क्षेत्र: सुरक्षा विभाग से संपर्क करें\n• आपातकालीन सेवाएं: 100 या 108 डायल करें\n• कमजोर क्षेत्रों में CCTV कैमरा लगवाएं\n• नियमित सुरक्षा ऑडिट और गश्त\n\n📞 सुरक्षा आपातकाल: 100",
+                mr: "🚨 सार्वजनिक सुरक्षा समाधाने:\n\n• तुटलेले रस्त्यावरील दिवे तात्काळ कळवा\n• खराब रस्ते चिन्हे: आमचे QR कोड रिपोर्टिंग वापरा\n• धोकादायक भाग: सुरक्षा विभागाशी संपर्क करा\n• आपत्कालीन सेवा: 100 किंवा 108 डायल करा\n• असुरक्षित भागात CCTV कॅमेरा बसवा\n• नियमित सुरक्षा तपासणी आणि गस्त\n\n📞 सुरक्षा आपत्काल: 100"
+            },
+            environment: {
+                en: "🌱 Environmental Solutions:\n\n• Waste segregation at source is mandatory\n• Report illegal dumping: Green helpline 1800-GREEN\n• Air pollution monitoring stations available\n• Plant more trees in your locality\n• Use public transport to reduce emissions\n• Solar panel installations get subsidies\n\n📞 Environment Helpline: 1800-GREEN",
+                hi: "🌱 पर्यावरणीय समाधान:\n\n• स्रोत पर कचरे का अलगाव अनिवार्य है\n• अवैध डंपिंग की रिपोर्ट करें: ग्रीन हेल्पलाइन 1800-GREEN\n• वायु प्रदूषण निगरानी केंद्र उपलब्ध\n• अपने इलाके में और पेड़ लगाएं\n• उत्सर्जन कम करने के लिए सार्वजनिक परिवहन का उपयोग करें\n• सोलर पैनल स्थापना पर सब्सिडी मिलती है\n\n📞 पर्यावरण हेल्पलाइन: 1800-GREEN",
+                mr: "🌱 पर्यावरणीय समाधाने:\n\n• स्त्रोतावर कचरा वेगळा करणे बंधनकारक\n• बेकायदेशीर कचरा टाकणे कळवा: ग्रीन हेल्पलाइन 1800-GREEN\n• हवा प्रदूषण मॉनिटरिंग केंद्रे उपलब्ध\n• आपल्या परिसरात अधिक झाडे लावा\n• उत्सर्जन कमी करण्यासाठी सार्वजनिक वाहतूक वापरा\n• सौर पॅनेल बसवण्यासाठी अनुदान मिळते\n\n📞 पर्यावरण हेल्पलाइन: 1800-GREEN"
+            },
+            transportation: {
+                en: "🚗 Transportation Solutions:\n\n• Real-time traffic updates on city app\n• Digital parking meters accept UPI payments\n• Bus schedule and routes available online\n• Report traffic signal issues immediately\n• Car-pooling platforms for reduced congestion\n• Metro connectivity expansion plans\n\n📞 Traffic Control: 103",
+                hi: "🚗 परिवहन समाधान:\n\n• सिटी ऐप पर रियल-टाइम ट्रैफिक अपडेट\n• डिजिटल पार्किंग मीटर UPI भुगतान स्वीकार करते हैं\n• बस शेड्यूल और रूट ऑनलाइन उपलब्ध\n• ट्रैफिक सिग्नल की समस्या तुरंत रिपोर्ट करें\n• भीड़ कम करने के लिए कार-पूलिंग प्लेटफॉर्म\n• मेट्रो कनेक्टिविटी विस्तार योजना\n\n📞 ट्रैफिक कंट्रोल: 103",
+                mr: "🚗 वाहतूक समाधाने:\n\n• सिटी अॅपवर रिअल-टाइम ट्रॅफिक अपडेट्स\n• डिजिटल पार्किंग मीटर UPI पेमेंट स्वीकारतात\n• बस वेळापत्रक आणि रूट ऑनलाइन उपलब्ध\n• ट्रॅफिक सिग्नलची समस्या तात्काळ कळवा\n• गर्दी कमी करण्यासाठी कार-पूलिंग प्लॅटफॉर्म\n• मेट्रो कनेक्टिव्हिटी विस्तार योजना\n\n📞 ट्रॅफिक कंट्रोल: 103"
+            },
+            services: {
+                en: "🚰 Public Services Solutions:\n\n• Water quality testing results published monthly\n• Sewage treatment plant locations mapped\n• Emergency services response time: 15 minutes\n• Register for water tanker during shortages\n• Waste collection schedule notifications\n• 24/7 helpline for service issues\n\n📞 Public Services: 1800-SERVE",
+                hi: "🚰 सार्वजनिक सेवा समाधान:\n\n• पानी की गुणवत्ता जांच के नतीजे मासिक प्रकाशित\n• सीवेज ट्रीटमेंट प्लांट के स्थान मैप किए गए\n• आपातकालीन सेवाओं का जवाब समय: 15 मिनट\n• कमी के दौरान पानी के टैंकर के लिए रजिस्टर करें\n• कचरा संग्रह कार्यक्रम की सूचनाएं\n• सेवा समस्याओं के लिए 24/7 हेल्पलाइन\n\n📞 सार्वजनिक सेवाएं: 1800-SERVE",
+                mr: "🚰 सार्वजनिक सेवा समाधाने:\n\n• पाण्याच्या गुणवत्तेच्या चाचणी निकाल मासिक प्रसिद्ध\n• सांडपाणी प्रक्रिया केंद्रांची स्थाने मॅप केली\n• आपत्कालीन सेवांचा प्रतिसाद वेळ: 15 मिनिटे\n• टंचाईच्या वेळी पाणी टँकरसाठी नोंदणी करा\n• कचरा गोळा करण्याच्या वेळापत्रकाच्या सूचना\n• सेवा समस्यांसाठी 24/7 हेल्पलाइन\n\n📞 सार्वजनिक सेवा: 1800-SERVE"
+            },
+            health: {
+                en: "🏥 Healthcare Solutions:\n\n• Free health checkups at government hospitals\n• Ambulance service: Dial 108\n• Vaccination schedules available online\n• Mental health counseling hotline\n• Blood bank locations and availability\n• Telemedicine consultations available\n\n📞 Health Emergency: 108",
+                hi: "🏥 स्वास्थ्य सेवा समाधान:\n\n• सरकारी अस्पतालों में मुफ्त स्वास्थ्य जांच\n• एम्बुलेंस सेवा: 108 डायल करें\n• टीकाकरण कार्यक्रम ऑनलाइन उपलब्ध\n• मानसिक स्वास्थ्य परामर्श हॉटलाइन\n• ब्लड बैंक के स्थान और उपलब्धता\n• टेलीमेडिसिन परामर्श उपलब्ध\n\n📞 स्वास्थ्य आपातकाल: 108",
+                mr: "🏥 आरोग्य सेवा समाधाने:\n\n• सरकारी रुग्णालयात मोफत आरोग्य तपासणी\n• रुग्णवाहिका सेवा: 108 डायल करा\n• लसीकरण वेळापत्रक ऑनलाइन उपलब्ध\n• मानसिक आरोग्य सल्ला हॉटलाइन\n• रक्तपेढींची स्थाने आणि उपलब्धता\n• टेलीमेडिसिन सल्ला उपलब्ध\n\n📞 आरोग्य आपत्काल: 108"
+            },
+            education: {
+                en: "🎓 Education Solutions:\n\n• Online school admission portal available\n• Free digital literacy programs\n• Scholarship information and applications\n• Library services and book reservations\n• Adult education evening classes\n• Skill development training programs\n\n📞 Education Helpline: 1800-EDU",
+                hi: "🎓 शिक्षा समाधान:\n\n• ऑनलाइन स्कूल प्रवेश पोर्टल उपलब्ध\n• मुफ्त डिजिटल साक्षरता कार्यक्रम\n• छात्रवृत्ति की जानकारी और आवेदन\n• पुस्तकालय सेवाएं और पुस्तक आरक्षण\n• वयस्क शिक्षा की शाम की कक्षाएं\n• कौशल विकास प्रशिक्षण कार्यक्रम\n\n📞 शिक्षा हेल्पलाइन: 1800-EDU",
+                mr: "🎓 शिक्षण समाधाने:\n\n• ऑनलाइन शाळा प्रवेश पोर्टल उपलब्ध\n• मोफत डिजिटल साक्षरता कार्यक्रम\n• शिष्यवृत्तीची माहिती आणि अर्ज\n• ग्रंथालय सेवा आणि पुस्तक आरक्षण\n• प्रौढ शिक्षणाचे संध्याकाळचे वर्ग\n• कौशल्य विकास प्रशिक्षण कार्यक्रम\n\n📞 शिक्षण हेल्पलाइन: 1800-EDU"
+            },
+            housing: {
+                en: "🏠 Housing Solutions:\n\n• Affordable housing scheme applications\n• Property tax calculation and payment\n• Building permit and approval process\n• Housing loan assistance programs\n• Slum rehabilitation projects\n• Real estate verification services\n\n📞 Housing Department: 1800-HOME",
+                hi: "🏠 आवास समाधान:\n\n• किफायती आवास योजना के आवेदन\n• संपत्ति कर गणना और भुगतान\n• भवन अनुमति और अनुमोदन प्रक्रिया\n• आवास ऋण सहायता कार्यक्रम\n• झुग्गी पुनर्वास परियोजनाएं\n• रियल एस्टेट सत्यापन सेवाएं\n\n📞 आवास विभाग: 1800-HOME",
+                mr: "🏠 गृहनिर्माण समाधाने:\n\n• परवडणारी गृहनिर्माण योजना अर्ज\n• मालमत्ता कर गणना आणि भरणा\n• इमारत परवानगी आणि मंजुरी प्रक्रिया\n• गृहकर्ज सहायता कार्यक्रम\n• झोपडपट्टी पुनर्वसन प्रकल्प\n• रिअल इस्टेट पडताळणी सेवा\n\n📞 गृहनिर्माण विभाग: 1800-HOME"
+            }
+        };
+
+        function selectProblem(problem) {
+            currentProblem = problem;
+
+            // Show typing indicator
+            document.getElementById('typingIndicator').style.display = 'flex';
+
+            setTimeout(() => {
+                // Hide typing indicator
+                document.getElementById('typingIndicator').style.display = 'none';
+
+                // Add user message
+                addMessage('user', `Selected: ${problem.charAt(0).toUpperCase() + problem.slice(1)}`);
+
+                setTimeout(() => {
+                    // Show language selection
+                    showLanguageSelection();
+                }, 500);
+            }, 1500);
+        }
+
+        function showLanguageSelection() {
+            const langMessage = `
+                <div>Please select your preferred language:</div>
+                <div style="margin-top: 10px;">
+                    <button class="language-btn" onclick="selectLanguage('en')">🇺🇸 English</button>
+                    <button class="language-btn" onclick="selectLanguage('hi')">🇮🇳 हिंदी</button>
+                    <button class="language-btn" onclick="selectLanguage('mr')">🇮🇳 मराठी</button>
+                </div>
+            `;
+            addMessage('bot', langMessage);
+        }
+
+        function selectLanguage(lang) {
+            selectedLanguage = lang;
+
+            const langNames = {
+                en: 'English',
+                hi: 'हिंदी',
+                mr: 'मराठी'
+            };
+            addMessage('user', `Selected language: ${langNames[lang]}`);
+
+            // Show typing indicator
+            document.getElementById('typingIndicator').style.display = 'flex';
+
+            setTimeout(() => {
+                document.getElementById('typingIndicator').style.display = 'none';
+                showSolution();
+            }, 2000);
+        }
+
+        function showSolution() {
+            const solution = solutions[currentProblem][selectedLanguage];
+            const solutionMessage = `
+                <div style="white-space: pre-line; line-height: 1.5;">${solution}</div>
+                <button class="back-btn" onclick="goBack()">← Back to Categories</button>
+            `;
+            addMessage('bot', solutionMessage);
+        }
+
+        function goBack() {
+            currentProblem = '';
+            selectedLanguage = '';
+
+            const welcomeMessage = `
+                <div>How can I help you today? Please select a category:</div>
+                <div class="problem-grid" style="margin-top: 10px;">
+                    <div class="problem-btn" onclick="selectProblem('infrastructure')">
+                        <span class="problem-icon">🏗️</span>
+                        Infrastructure
+                    </div>
+                    <div class="problem-btn" onclick="selectProblem('safety')">
+                        <span class="problem-icon">🚨</span>
+                        Public Safety
+                    </div>
+                    <div class="problem-btn" onclick="selectProblem('environment')">
+                        <span class="problem-icon">🌱</span>
+                        Environment
+                    </div>
+                    <div class="problem-btn" onclick="selectProblem('transportation')">
+                        <span class="problem-icon">🚗</span>
+                        Transportation
+                    </div>
+                    <div class="problem-btn" onclick="selectProblem('services')">
+                        <span class="problem-icon">🚰</span>
+                        Public Services
+                    </div>
+                    <div class="problem-btn" onclick="selectProblem('health')">
+                        <span class="problem-icon">🏥</span>
+                        Healthcare
+                    </div>
+                    <div class="problem-btn" onclick="selectProblem('education')">
+                        <span class="problem-icon">🎓</span>
+                        Education
+                    </div>
+                    <div class="problem-btn" onclick="selectProblem('housing')">
+                        <span class="problem-icon">🏠</span>
+                        Housing
+                    </div>
+                </div>
+            `;
+            addMessage('bot', welcomeMessage);
+        }
+
+        function addMessage(sender, content) {
+            const chatArea = document.getElementById('chatArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+
+            if (sender === 'bot') {
+                messageDiv.innerHTML = `
+                    <div class="bot-avatar"> <img src="logo.jpg" alt="UrbanCityPortal Logo" style="height: 30px; width: 30px; object-fit: cover; border-radius: 50%; margin-right: 10px;"></div>
+                    <div class="message-content">${content}</div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-content">${content}</div>
+                `;
+            }
+
+            // Insert before typing indicator
+            const typingIndicator = document.getElementById('typingIndicator');
+            chatArea.insertBefore(messageDiv, typingIndicator);
+
+            // Scroll to bottom
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // Add some initial animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add pulse animation to online status
+            const onlineStatus = document.querySelector('.online-status');
+            setInterval(() => {
+                onlineStatus.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    onlineStatus.style.transform = 'scale(1)';
+                }, 200);
+            }, 3000);
+
+            // Add hover effects to problem buttons
+            document.addEventListener('mouseover', function(e) {
+                if (e.target.classList.contains('problem-btn')) {
+                    e.target.style.transform = 'scale(1.05)';
+                }
+            });
+
+            document.addEventListener('mouseout', function(e) {
+                if (e.target.classList.contains('problem-btn')) {
+                    e.target.style.transform = 'scale(1)';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
